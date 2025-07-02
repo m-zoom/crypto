@@ -34,6 +34,8 @@ def get_price_data(ticker: str, start_date: str, end_date: str, timeframe: str) 
     
     # Map timeframe to API parameters
     interval_map = {
+        "1min": ("minute", 1),
+        "2min": ("minute", 2),
         "5min": ("minute", 5),
         "15min": ("minute", 15),
         "30min": ("minute", 30),
@@ -79,7 +81,13 @@ def get_recent_data(ticker: str, num_candles: int, timeframe: str) -> Optional[L
     end_date = datetime.now(tz)
     
     # Calculate start date based on timeframe to get enough data
-    if timeframe == "5min":
+    if timeframe == "1min":
+        days_back = max(3, num_candles * 1 / (60 * 6.5))  # 6.5 trading hours per day
+        start_date = end_date - timedelta(days=days_back)
+    elif timeframe == "2min":
+        days_back = max(3, num_candles * 2 / (60 * 6.5))  # 6.5 trading hours per day
+        start_date = end_date - timedelta(days=days_back)
+    elif timeframe == "5min":
         days_back = max(5, num_candles * 5 / (60 * 6.5))  # 6.5 trading hours per day
         start_date = end_date - timedelta(days=days_back)
     elif timeframe == "15min":

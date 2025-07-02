@@ -41,6 +41,8 @@ pattern_detector = None
 def get_monitoring_frequency_seconds(timeframe):
     """Convert timeframe to monitoring frequency in seconds"""
     frequency_map = {
+        '1min': 1 * 60,
+        '2min': 2 * 60,
         '5min': 5 * 60,
         '15min': 15 * 60, 
         '30min': 30 * 60,
