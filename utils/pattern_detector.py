@@ -1,7 +1,7 @@
 import os
 import pickle
 import logging
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 import numpy as np
 import sys
 import importlib
@@ -347,48 +347,146 @@ class PatternDetector:
         
         for pattern_name, model in self.models.items():
             try:
-                # Check if model has the expected predict method
-                if not hasattr(model, 'predict'):
+                # Check if this is a loaded ML model or our fallback classifier
+                if hasattr(model, '__module__') and 'sklearn' in str(type(model)):
+                    # This is a real ML model - use it properly
+                    logger.debug(f"Using ML model for {pattern_name}: {type(model)}")
+                    
+                    # Prepare features for ML model
+                    features = self._prepare_features_for_ml_model(candles)
+                    if features is not None:
+                        # Get prediction from ML model
+                        if hasattr(model, 'predict_proba'):
+                            # Classification model with probability
+                            probabilities = model.predict_proba([features])
+                            prediction = model.predict([features])[0]
+                            confidence = float(max(probabilities[0]) * 100)
+                        elif hasattr(model, 'predict'):
+                            # Regular prediction
+                            prediction = model.predict([features])[0]
+                            confidence = float(abs(prediction) * 100) if isinstance(prediction, (int, float)) else 50.0
+                        else:
+                            raise AttributeError("Model has no predict method")
+                        
+                        detected = bool(prediction) if isinstance(prediction, (bool, np.bool_)) else prediction > 0.5
+                        
+                        results[pattern_name] = {
+                            'detected': detected,
+                            'confidence': min(confidence, 100.0),
+                            'model_type': f'ML Model ({type(model).__name__})'
+                        }
+                        
+                        logger.info(f"{pattern_name} ML Model: {'Detected' if detected else 'Not detected'} "
+                                   f"(Confidence: {confidence:.1f}%)")
+                    else:
+                        results[pattern_name] = {
+                            'error': 'Failed to prepare features for ML model'
+                        }
+                        
+                elif hasattr(model, 'predict'):
+                    # This is our fallback classifier - use it as backup
+                    logger.debug(f"Using fallback classifier for {pattern_name}")
+                    prediction_result = model.predict(candles)
+                    
+                    # Handle different return formats
+                    if isinstance(prediction_result, tuple) and len(prediction_result) == 2:
+                        prediction, confidence = prediction_result
+                    elif isinstance(prediction_result, (list, np.ndarray)) and len(prediction_result) >= 2:
+                        prediction, confidence = prediction_result[0], prediction_result[1]
+                    else:
+                        prediction = bool(prediction_result)
+                        confidence = 50.0 if prediction else 0.0
+                    
+                    results[pattern_name] = {
+                        'detected': bool(prediction),
+                        'confidence': float(confidence),
+                        'model_type': f'Fallback ({type(model).__name__})'
+                    }
+                    
+                    logger.debug(f"{pattern_name} Fallback: {'Detected' if prediction else 'Not detected'} "
+                               f"(Confidence: {confidence}%)")
+                else:
                     logger.warning(f"{pattern_name} model doesn't have a 'predict' method")
                     results[pattern_name] = {
                         'error': 'Model missing predict method'
                     }
-                    continue
-                
-                # Try to get prediction
-                prediction_result = model.predict(candles)
-                
-                # Handle different return formats
-                if isinstance(prediction_result, tuple) and len(prediction_result) == 2:
-                    prediction, confidence = prediction_result
-                elif isinstance(prediction_result, (list, np.ndarray)) and len(prediction_result) >= 2:
-                    prediction, confidence = prediction_result[0], prediction_result[1]
-                else:
-                    # Handle single value or unexpected format
-                    prediction = bool(prediction_result)
-                    confidence = 50.0 if prediction else 0.0
-                    logger.warning(f"{pattern_name} returned unexpected format: {type(prediction_result)}")
-                
-                # Ensure confidence is a number
-                if confidence is None or not isinstance(confidence, (int, float)):
-                    confidence = 0.0
-                
-                results[pattern_name] = {
-                    'detected': bool(prediction),
-                    'confidence': float(confidence),
-                    'model_type': type(model).__name__
-                }
-                
-                logger.debug(f"{pattern_name}: {'Detected' if prediction else 'Not detected'} "
-                           f"(Confidence: {confidence}%)")
                            
             except Exception as e:
                 logger.error(f"Error analyzing {pattern_name}: {str(e)}")
+                logger.error(f"Model type: {type(model)}")
                 results[pattern_name] = {
                     'error': str(e)
                 }
         
         return results
+    
+    def _prepare_features_for_ml_model(self, candles: List[List[float]]) -> Optional[List[float]]:
+        """Prepare features from candle data for ML model input"""
+        try:
+            if len(candles) < 5:
+                return None
+            
+            # Extract OHLCV data
+            opens = [c[0] for c in candles]
+            highs = [c[1] for c in candles]
+            lows = [c[2] for c in candles]
+            closes = [c[3] for c in candles]
+            volumes = [c[4] for c in candles]
+            
+            features = []
+            
+            # Basic price features
+            features.extend([
+                opens[-1], highs[-1], lows[-1], closes[-1], volumes[-1]  # Latest OHLCV
+            ])
+            
+            # Price ratios and changes
+            if len(candles) >= 2:
+                features.extend([
+                    closes[-1] / closes[-2] - 1,  # Price change ratio
+                    highs[-1] / lows[-1] - 1,     # High/Low ratio
+                    (closes[-1] - opens[-1]) / opens[-1],  # Body size ratio
+                ])
+            
+            # Moving averages and trends
+            if len(candles) >= 5:
+                ma5 = sum(closes[-5:]) / 5
+                features.extend([
+                    closes[-1] / ma5 - 1,  # Distance from MA5
+                    max(highs[-5:]) / min(lows[-5:]) - 1,  # 5-period high/low range
+                ])
+            
+            # Statistical features
+            if len(candles) >= 10:
+                recent_closes = closes[-10:]
+                mean_price = sum(recent_closes) / len(recent_closes)
+                variance = sum((p - mean_price) ** 2 for p in recent_closes) / len(recent_closes)
+                std_dev = variance ** 0.5
+                
+                features.extend([
+                    (closes[-1] - mean_price) / (std_dev + 1e-8),  # Z-score
+                    std_dev / mean_price,  # Coefficient of variation
+                ])
+            
+            # Pattern-specific features
+            features.extend([
+                min(lows) / max(highs),  # Overall low/high ratio
+                sum(1 for i in range(1, len(closes)) if closes[i] > closes[i-1]) / (len(closes) - 1),  # Up days ratio
+            ])
+            
+            # Pad features to ensure consistent length
+            while len(features) < 20:
+                features.append(0.0)
+            
+            # Truncate if too long
+            features = features[:20]
+            
+            logger.debug(f"Prepared {len(features)} features for ML model")
+            return features
+            
+        except Exception as e:
+            logger.error(f"Error preparing features: {str(e)}")
+            return None
     
     def get_pattern_summary(self, results: Dict[str, Dict[str, Any]]) -> Dict[str, int]:
         """Get summary statistics of pattern detection results"""
