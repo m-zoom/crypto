@@ -348,53 +348,42 @@ class PatternDetector:
         for pattern_name, model in self.models.items():
             try:
                 # Check if this is a loaded ML model or our fallback classifier
-                model_type_str = str(type(model))
-                is_ml_model = ('sklearn' in model_type_str or 
-                              hasattr(model, '_sklearn_version') or 
-                              hasattr(model, 'fit') or
-                              'BaseEstimator' in str(type(model).__mro__))
-                
-                if is_ml_model and not hasattr(model, 'pattern_name'):
+                if hasattr(model, '__module__') and 'sklearn' in str(type(model)):
                     # This is a real ML model - use it properly
-                    logger.info(f"Using ML model for {pattern_name}: {type(model)}")
+                    logger.debug(f"Using ML model for {pattern_name}: {type(model)}")
                     
                     # Prepare features for ML model
                     features = self._prepare_features_for_ml_model(candles)
                     if features is not None:
-                        try:
-                            # Get prediction from ML model
-                            if hasattr(model, 'predict_proba'):
-                                # Classification model with probability
-                                probabilities = model.predict_proba([features])
-                                prediction = model.predict([features])[0]
-                                confidence = float(max(probabilities[0]) * 100)
-                            elif hasattr(model, 'predict'):
-                                # Regular prediction
-                                prediction = model.predict([features])[0]
-                                confidence = float(abs(prediction) * 100) if isinstance(prediction, (int, float)) else 50.0
-                            else:
-                                raise AttributeError("Model has no predict method")
-                            
-                            detected = bool(prediction) if isinstance(prediction, (bool, np.bool_)) else prediction > 0.5
-                            
-                            results[pattern_name] = {
-                                'detected': detected,
-                                'confidence': min(confidence, 100.0),
-                                'model_type': f'ML Model ({type(model).__name__})'
-                            }
-                            
-                            logger.info(f"{pattern_name} ML Model: {'Detected' if detected else 'Not detected'} "
-                                       f"(Confidence: {confidence:.1f}%)")
-                        except Exception as ml_error:
-                            logger.warning(f"ML model failed for {pattern_name}: {ml_error}, using fallback")
-                            # Fall through to fallback classifier
-                            is_ml_model = False
+                        # Get prediction from ML model
+                        if hasattr(model, 'predict_proba'):
+                            # Classification model with probability
+                            probabilities = model.predict_proba([features])
+                            prediction = model.predict([features])[0]
+                            confidence = float(max(probabilities[0]) * 100)
+                        elif hasattr(model, 'predict'):
+                            # Regular prediction
+                            prediction = model.predict([features])[0]
+                            confidence = float(abs(prediction) * 100) if isinstance(prediction, (int, float)) else 50.0
+                        else:
+                            raise AttributeError("Model has no predict method")
+                        
+                        detected = bool(prediction) if isinstance(prediction, (bool, np.bool_)) else prediction > 0.5
+                        
+                        results[pattern_name] = {
+                            'detected': detected,
+                            'confidence': min(confidence, 100.0),
+                            'model_type': f'ML Model ({type(model).__name__})'
+                        }
+                        
+                        logger.info(f"{pattern_name} ML Model: {'Detected' if detected else 'Not detected'} "
+                                   f"(Confidence: {confidence:.1f}%)")
                     else:
-                        logger.warning(f"Failed to prepare features for {pattern_name}, using fallback")
-                        is_ml_model = False
-                
-                # Use fallback classifier if ML model failed or wasn't available
-                if not is_ml_model and hasattr(model, 'predict'):
+                        results[pattern_name] = {
+                            'error': 'Failed to prepare features for ML model'
+                        }
+                        
+                elif hasattr(model, 'predict'):
                     # This is our fallback classifier - use it as backup
                     logger.debug(f"Using fallback classifier for {pattern_name}")
                     prediction_result = model.predict(candles)
