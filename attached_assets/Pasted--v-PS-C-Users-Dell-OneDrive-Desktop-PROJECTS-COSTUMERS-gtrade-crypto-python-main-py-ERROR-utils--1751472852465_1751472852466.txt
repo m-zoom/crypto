@@ -1,0 +1,47 @@
+(v) PS C:\Users\Dell\OneDrive\Desktop\PROJECTS\COSTUMERS\gtrade\crypto> python main.py
+ERROR:utils.pattern_detector:Error loading models\triple_bottom_model.pkl: Can't get attribute 'TripleBottomClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Triple Bottom' not found in any location
+ERROR:utils.pattern_detector:Error loading models\inverse_head_and_shoulders_model.pkl: Can't get attribute 'InverseHeadAndShouldersClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Inverse Head And Shoulders' not found in any location
+ERROR:utils.pattern_detector:Error loading models\double_top_model.pkl: Can't get attribute 'DoubleTopClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Double Top' not found in any location
+ERROR:utils.pattern_detector:Error loading models\double_bottom_model.pkl: Can't get attribute 'DoubleBottomClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Double Bottom' not found in any location
+ERROR:utils.pattern_detector:Error loading models\../attached_assets/double_bottom_model_1751462203470.pkl: Can't get attribute 'DoubleBottomClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Double Bottom' not found in any location
+ERROR:utils.pattern_detector:Error loading models\../attached_assets/double_top_model_1751462203471.pkl: Can't get attribute 'DoubleTopClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Double Top' not found in any location
+ERROR:utils.pattern_detector:Error loading models\../attached_assets/inverse_head_and_shoulders_model_1751462203469.pkl: Can't get attribute 'InverseHeadAndShouldersClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Inverse Head And Shoulders' not found in any location
+ERROR:utils.pattern_detector:Error loading models\../attached_assets/triple_bottom_model_1751462203470.pkl: Can't get attribute 'TripleBottomClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Triple Bottom' not found in any location
+WARNING:utils.pattern_detector:No models were successfully loaded. Creating dummy classifiers...
+INFO:app:Pattern detector initialized successfully
+ * Serving Flask app 'app'
+ * Debug mode: on
+INFO:werkzeug:WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.233.32:5000
+INFO:werkzeug:Press CTRL+C to quit
+INFO:werkzeug: * Restarting with stat
+ERROR:utils.pattern_detector:Error loading models\triple_bottom_model.pkl: Can't get attribute 'TripleBottomClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Triple Bottom' not found in any location
+ERROR:utils.pattern_detector:Error loading models\inverse_head_and_shoulders_model.pkl: Can't get attribute 'InverseHeadAndShouldersClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Inverse Head And Shoulders' not found in any location
+ERROR:utils.pattern_detector:Error loading models\double_top_model.pkl: Can't get attribute 'DoubleTopClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Double Top' not found in any location
+ERROR:utils.pattern_detector:Error loading models\double_bottom_model.pkl: Can't get attribute 'DoubleBottomClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Double Bottom' not found in any location
+ERROR:utils.pattern_detector:Error loading models\../attached_assets/double_bottom_model_1751462203470.pkl: Can't get attribute 'DoubleBottomClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Double Bottom' not found in any location
+ERROR:utils.pattern_detector:Error loading models\../attached_assets/double_top_model_1751462203471.pkl: Can't get attribute 'DoubleTopClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Double Top' not found in any location
+ERROR:utils.pattern_detector:Error loading models\../attached_assets/inverse_head_and_shoulders_model_1751462203469.pkl: Can't get attribute 'InverseHeadAndShouldersClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Inverse Head And Shoulders' not found in any location
+ERROR:utils.pattern_detector:Error loading models\../attached_assets/triple_bottom_model_1751462203470.pkl: Can't get attribute 'TripleBottomClassifier' on <module '__main__' from 'C:\\Users\\Dell\\OneDrive\\Desktop\\PROJECTS\\COSTUMERS\\gtrade\\crypto\\main.py'>
+WARNING:utils.pattern_detector:Model file for 'Triple Bottom' not found in any location
+WARNING:utils.pattern_detector:No models were successfully loaded. Creating dummy classifiers...
+INFO:app:Pattern detector initialized successfully
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 212-377-358

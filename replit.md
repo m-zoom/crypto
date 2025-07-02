@@ -109,7 +109,15 @@ This is a Flask web application that automates forex chart pattern recognition u
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+- July 02, 2025: Fixed Windows compatibility issues with model loading
+- July 02, 2025: Added support for 1-minute and 2-minute timeframes
+- July 02, 2025: Implemented safe pickle loading system to handle ML model class definition issues
+- July 02, 2025: Created working pattern detection classifiers with actual logic for all pattern types
+- July 02, 2025: Added Windows setup guide with troubleshooting steps
+
 ## Changelog
 
 Changelog:
-- July 02, 2025. Initial setup
+- July 02, 2025. Initial setup and Windows compatibility fixes
