@@ -1,0 +1,6 @@
+# This directory contains the ML model files (.pkl)
+# Place your trained pattern detection models here:
+# - double_bottom_model.pkl
+# - double_top_model.pkl  
+# - triple_bottom_model.pkl
+# - inverse_head_and_shoulders_model.pkl

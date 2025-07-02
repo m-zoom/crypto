@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forex Pattern Recognition System</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+                    <div class="container">
+                        <a class="navbar-brand" href="#">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Forex Pattern Recognition
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="container">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-cog me-2"></i>
+                                Trading Parameters
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="tickerSelect" class="form-label">Ticker Symbol</label>
+                                    <select class="form-select" id="tickerSelect">
+                                        <option value="AAPL">AAPL</option>
+                                        <option value="EURUSD">EUR/USD</option>
+                                        <option value="GBPUSD">GBP/USD</option>
+                                        <option value="USDJPY">USD/JPY</option>
+                                        <option value="USDCHF">USD/CHF</option>
+                                        <option value="AUDUSD">AUD/USD</option>
+                                        <option value="USDCAD">USD/CAD</option>
+                                        <option value="NZDUSD">NZD/USD</option>
+                                        <option value="TSLA">TSLA</option>
+                                        <option value="GOOGL">GOOGL</option>
+                                        <option value="MSFT">MSFT</option>
+                                        <option value="AMZN">AMZN</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="timeframeSelect" class="form-label">Timeframe</label>
+                                    <select class="form-select" id="timeframeSelect">
+                                        <option value="5min">5 Minutes</option>
+                                        <option value="15min">15 Minutes</option>
+                                        <option value="30min">30 Minutes</option>
+                                        <option value="60min">60 Minutes</option>
+                                        <option value="daily">Daily</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Real-time Monitoring</label>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-success flex-fill" id="startBtn">
+                                            <i class="fas fa-play me-1"></i>
+                                            Start
+                                        </button>
+                                        <button class="btn btn-danger flex-fill" id="stopBtn" disabled>
+                                            <i class="fas fa-stop me-1"></i>
+                                            Stop
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Historical Analysis</label>
+                                    <button class="btn btn-primary w-100" id="analyzeBtn">
+                                        <i class="fas fa-search me-1"></i>
+                                        Analyze
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Status Indicator -->
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info d-flex align-items-center" id="statusAlert">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <span id="statusText">Ready to start monitoring</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Chart Section -->
+            <div class="col-lg-8">
+                <div class="container">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-candlestick me-2"></i>
+                                Price Chart
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="priceChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pattern Results & Logs -->
+            <div class="col-lg-4">
+                <div class="container">
+                    <!-- Pattern Detection Results -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-search me-2"></i>
+                                Pattern Detection Results
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="patternResults">
+                                <div class="text-muted text-center">
+                                    <i class="fas fa-chart-area fa-2x mb-2"></i>
+                                    <p>No patterns detected yet. Start monitoring or run historical analysis.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Logs -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-list me-2"></i>
+                                Activity Logs
+                            </h5>
+                            <button class="btn btn-sm btn-outline-secondary" id="clearLogsBtn">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="logs-container" id="logsContainer">
+                                <div class="text-muted text-center p-3">
+                                    <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                                    <p>No activity logs yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
