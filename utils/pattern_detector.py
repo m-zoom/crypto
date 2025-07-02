@@ -25,85 +25,182 @@ class BasePatternClassifier:
 class TripleBottomClassifier(BasePatternClassifier):
     """Triple Bottom pattern classifier"""
     def predict(self, candles: List[List[float]]) -> Tuple[bool, float]:
-        # Analyze candles for triple bottom pattern
-        if len(candles) < 10:
+        if len(candles) < 15:
             return False, 0.0
         
-        # Simple heuristic: look for three low points
-        lows = [candle[2] for candle in candles]  # Low prices
-        min_low = min(lows)
+        # Extract price data
+        lows = [candle[2] for candle in candles]
+        highs = [candle[1] for candle in candles]
+        closes = [candle[3] for candle in candles]
         
-        # Count how many candles are near the minimum
-        near_min_count = sum(1 for low in lows if abs(low - min_low) / min_low < 0.02)
+        # Find local minima (potential bottoms)
+        local_minima = []
+        for i in range(2, len(lows) - 2):
+            if lows[i] < lows[i-1] and lows[i] < lows[i+1] and lows[i] < lows[i-2] and lows[i] < lows[i+2]:
+                local_minima.append((i, lows[i]))
         
-        if near_min_count >= 3:
-            confidence = min(90.0, near_min_count * 15.0)
-            return True, confidence
+        if len(local_minima) < 3:
+            return False, 0.0
         
-        return False, near_min_count * 10.0
+        # Check if we have three bottoms at similar levels
+        sorted_minima = sorted(local_minima, key=lambda x: x[1])
+        bottom_levels = [m[1] for m in sorted_minima[:3]]
+        
+        # Calculate if bottoms are at similar levels (within 3% of each other)
+        max_bottom = max(bottom_levels)
+        min_bottom = min(bottom_levels)
+        
+        if max_bottom > 0 and (max_bottom - min_bottom) / max_bottom < 0.03:
+            # Check if pattern shows reversal (price moving up after third bottom)
+            last_bottom_idx = max([m[0] for m in sorted_minima[:3]])
+            if last_bottom_idx < len(closes) - 3:
+                recent_trend = closes[-1] - closes[last_bottom_idx]
+                if recent_trend > 0:
+                    confidence = min(85.0, 60.0 + (3 - (max_bottom - min_bottom) / max_bottom * 100) * 8)
+                    return True, confidence
+        
+        return False, len(local_minima) * 5.0
 
 class InverseHeadAndShouldersClassifier(BasePatternClassifier):
     """Inverse Head and Shoulders pattern classifier"""
     def predict(self, candles: List[List[float]]) -> Tuple[bool, float]:
-        if len(candles) < 10:
+        if len(candles) < 15:
             return False, 0.0
         
-        # Simple heuristic for inverse head and shoulders
+        # Extract price data
         lows = [candle[2] for candle in candles]
+        highs = [candle[1] for candle in candles]
+        closes = [candle[3] for candle in candles]
         
-        # Look for a low-high-low pattern in the middle section
-        mid_start = len(lows) // 3
-        mid_end = 2 * len(lows) // 3
+        # Find local minima for shoulders and head
+        local_minima = []
+        for i in range(3, len(lows) - 3):
+            if lows[i] < lows[i-1] and lows[i] < lows[i+1] and lows[i] < lows[i-2] and lows[i] < lows[i+2]:
+                local_minima.append((i, lows[i]))
         
-        if mid_start < mid_end - 2:
-            left_low = min(lows[:mid_start]) if mid_start > 0 else lows[0]
-            head_low = min(lows[mid_start:mid_end])
-            right_low = min(lows[mid_end:]) if mid_end < len(lows) else lows[-1]
+        if len(local_minima) < 3:
+            return False, 0.0
+        
+        # Sort by position to find chronological order
+        local_minima.sort(key=lambda x: x[0])
+        
+        # Look for left shoulder, head, right shoulder pattern
+        for i in range(len(local_minima) - 2):
+            left_shoulder = local_minima[i]
+            head = local_minima[i + 1]
+            right_shoulder = local_minima[i + 2]
             
-            # Head should be lower than shoulders
-            if head_low < left_low * 0.98 and head_low < right_low * 0.98:
-                confidence = min(85.0, 70.0)
-                return True, confidence
+            # Head should be significantly lower than both shoulders
+            head_depth = (min(left_shoulder[1], right_shoulder[1]) - head[1]) / head[1]
+            
+            if head_depth > 0.015:  # Head at least 1.5% deeper
+                # Shoulders should be at similar levels (within 2%)
+                shoulder_diff = abs(left_shoulder[1] - right_shoulder[1]) / max(left_shoulder[1], right_shoulder[1])
+                
+                if shoulder_diff < 0.02:
+                    # Check for upward breakout after right shoulder
+                    if right_shoulder[0] < len(closes) - 3:
+                        # Look for price moving above the neckline (shoulder level)
+                        neckline = max(left_shoulder[1], right_shoulder[1])
+                        recent_high = max(highs[right_shoulder[0]:])
+                        
+                        if recent_high > neckline * 1.01:  # Break above neckline by 1%
+                            confidence = min(80.0, 45.0 + head_depth * 1000 + (2 - shoulder_diff * 100) * 10)
+                            return True, confidence
         
-        return False, 25.0
+        return False, len(local_minima) * 4.0
 
 class DoubleTopClassifier(BasePatternClassifier):
     """Double Top pattern classifier"""
     def predict(self, candles: List[List[float]]) -> Tuple[bool, float]:
-        if len(candles) < 8:
+        if len(candles) < 10:
             return False, 0.0
         
-        # Look for two similar high points
+        # Extract price data
         highs = [candle[1] for candle in candles]
-        max_high = max(highs)
+        lows = [candle[2] for candle in candles]
+        closes = [candle[3] for candle in candles]
         
-        # Count highs near the maximum
-        near_max_count = sum(1 for high in highs if abs(high - max_high) / max_high < 0.01)
+        # Find local maxima (potential tops)
+        local_maxima = []
+        for i in range(2, len(highs) - 2):
+            if highs[i] > highs[i-1] and highs[i] > highs[i+1] and highs[i] > highs[i-2] and highs[i] > highs[i+2]:
+                local_maxima.append((i, highs[i]))
         
-        if near_max_count >= 2:
-            confidence = min(80.0, near_max_count * 20.0)
-            return True, confidence
+        if len(local_maxima) < 2:
+            return False, 0.0
         
-        return False, near_max_count * 15.0
+        # Check if we have two tops at similar levels
+        sorted_maxima = sorted(local_maxima, key=lambda x: x[1], reverse=True)
+        top_levels = [m[1] for m in sorted_maxima[:2]]
+        
+        # Calculate if tops are at similar levels (within 2% of each other)
+        max_top = max(top_levels)
+        min_top = min(top_levels)
+        
+        if max_top > 0 and (max_top - min_top) / max_top < 0.02:
+            # Check for valley between the tops
+            top_indices = [m[0] for m in sorted_maxima[:2]]
+            min_idx, max_idx = min(top_indices), max(top_indices)
+            valley_low = min(lows[min_idx:max_idx+1])
+            
+            # Valley should be significantly lower than tops (at least 2% drop)
+            if (max_top - valley_low) / max_top > 0.02:
+                # Check if price is declining after second top
+                last_top_idx = max(top_indices)
+                if last_top_idx < len(closes) - 2:
+                    recent_trend = closes[-1] - closes[last_top_idx]
+                    if recent_trend < 0:
+                        confidence = min(80.0, 55.0 + (2 - (max_top - min_top) / max_top * 100) * 10)
+                        return True, confidence
+        
+        return False, len(local_maxima) * 8.0
 
 class DoubleBottomClassifier(BasePatternClassifier):
     """Double Bottom pattern classifier"""
     def predict(self, candles: List[List[float]]) -> Tuple[bool, float]:
-        if len(candles) < 8:
+        if len(candles) < 10:
             return False, 0.0
         
-        # Look for two similar low points
+        # Extract price data
         lows = [candle[2] for candle in candles]
-        min_low = min(lows)
+        highs = [candle[1] for candle in candles]
+        closes = [candle[3] for candle in candles]
         
-        # Count lows near the minimum
-        near_min_count = sum(1 for low in lows if abs(low - min_low) / min_low < 0.01)
+        # Find local minima (potential bottoms)
+        local_minima = []
+        for i in range(2, len(lows) - 2):
+            if lows[i] < lows[i-1] and lows[i] < lows[i+1] and lows[i] < lows[i-2] and lows[i] < lows[i+2]:
+                local_minima.append((i, lows[i]))
         
-        if near_min_count >= 2:
-            confidence = min(75.0, near_min_count * 25.0)
-            return True, confidence
+        if len(local_minima) < 2:
+            return False, 0.0
         
-        return False, near_min_count * 12.0
+        # Check if we have two bottoms at similar levels
+        sorted_minima = sorted(local_minima, key=lambda x: x[1])
+        bottom_levels = [m[1] for m in sorted_minima[:2]]
+        
+        # Calculate if bottoms are at similar levels (within 2% of each other)
+        max_bottom = max(bottom_levels)
+        min_bottom = min(bottom_levels)
+        
+        if max_bottom > 0 and (max_bottom - min_bottom) / max_bottom < 0.02:
+            # Check for peak between the bottoms
+            bottom_indices = [m[0] for m in sorted_minima[:2]]
+            min_idx, max_idx = min(bottom_indices), max(bottom_indices)
+            peak_high = max(highs[min_idx:max_idx+1])
+            
+            # Peak should be significantly higher than bottoms (at least 2% rise)
+            if (peak_high - min_bottom) / min_bottom > 0.02:
+                # Check if price is rising after second bottom
+                last_bottom_idx = max(bottom_indices)
+                if last_bottom_idx < len(closes) - 2:
+                    recent_trend = closes[-1] - closes[last_bottom_idx]
+                    if recent_trend > 0:
+                        confidence = min(75.0, 50.0 + (2 - (max_bottom - min_bottom) / max_bottom * 100) * 10)
+                        return True, confidence
+        
+        return False, len(local_minima) * 7.0
 
 class SafeUnpickler(pickle.Unpickler):
     """Safe unpickler that can handle missing classes"""
