@@ -236,15 +236,28 @@ class PatternRecognitionApp {
                 const badgeText = detected ? 'Detected' : 'Not Detected';
                 const confidenceClass = confidence > 70 ? 'high' : confidence > 30 ? 'medium' : 'low';
 
+                // Format pattern name for display
+                const displayName = patternName.replace(/_/g, ' ')
+                    .replace(/\b\w/g, l => l.toUpperCase());
+
                 html += `
-                    <div class="pattern-result ${status}">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <strong>${patternName}</strong>
-                            <span class="badge ${badgeClass}">${badgeText}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <small>Confidence: ${confidence.toFixed(1)}%</small>
-                            <small class="text-muted">${data.model_type || 'Unknown'}</small>
+                    <div class="pattern-result ${status} animate-in">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <div class="pattern-name">${displayName}</div>
+                                <div class="pattern-confidence">
+                                    ${detected ? 
+                                        `<i class="fas fa-check-circle text-success me-1"></i>Pattern Detected` : 
+                                        `<i class="fas fa-times-circle text-muted me-1"></i>Not Detected`
+                                    }
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="badge ${badgeClass} mb-1">
+                                    ${confidence.toFixed(1)}%
+                                </div>
+                                <div class="text-muted" style="font-size: 0.7rem;">${data.model_type || 'Unknown'}</div>
+                            </div>
                         </div>
                         <div class="confidence-bar">
                             <div class="confidence-fill ${confidenceClass}" style="width: ${confidence}%"></div>
